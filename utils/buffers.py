@@ -94,7 +94,7 @@ class ReadBuffer:
                 self.idoc = 0
                 self.word = self.invidx[self.i][0]
                 self.docID = self.invidx[self.i][1][self.idoc][0]
-                self.count = self.invidx[0][1][self.idoc][1]
+                self.count = self.invidx[self.i][1][self.idoc][1]
 
         # si no estamos al final de postings_list
         else: 

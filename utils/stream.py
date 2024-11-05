@@ -7,7 +7,7 @@ from nltk.stem.snowball import SnowballStemmer
 
 # DEBUG
 
-stemmer = SnowballStemmer('spanish')
+stemmer = SnowballStemmer('english')
 # LIMIT = 400 # bytes
 
 class Stream:
