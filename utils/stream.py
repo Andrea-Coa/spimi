@@ -8,20 +8,20 @@ from nltk.stem.snowball import SnowballStemmer
 # DEBUG
 
 stemmer = SnowballStemmer('spanish')
-LIMIT = 400 # bytes
+# LIMIT = 400 # bytes
 
 class Stream:
 
-    def preprocess(self, contents, stoplist):
+    def preprocess(self, contents, stoplist, lang = "english"):
         words = []
         contents = contents.lower()
         contents = re.sub(r'[^a-zA-Z0-9_À-ÿ]', ' ', contents)
-        words = nltk.word_tokenize(contents, language='spanish')
+        words = nltk.word_tokenize(contents, language=lang)
         words = [word for word in words if word not in stoplist]    
         words = [stemmer.stem(word) for word in words]
         return words
 
-    def __init__(self, doclist, stoplist):
+    def __init__(self, doclist, stoplist, limit):
         self.list_count = 0      # cantidad de listas que hay
         self.list_idx = 0        # índice de lista actual de terms
         self.current_list = []   # lista actual de terms
@@ -64,7 +64,7 @@ class Stream:
             
             # escribir los stems
             while istem < len(stems):
-                if sys.getsizeof(chunk) >= LIMIT:
+                if sys.getsizeof(chunk) >= limit:
                     pickle.dump(chunk, file)
                     self.list_count += 1
                     chunk = []
@@ -100,7 +100,7 @@ class Stream:
         self.current_idx += 1
         return res
 
-    def close_file(self):
+    def end(self):
         self.file.close()
     
     def open_file(self):

@@ -1,7 +1,8 @@
 import pickle
 import sys
+import os
 
-# CLASS HELPER
+# CLASS READBUFFER
 # ------------
 # Read buffer para facilitar el merge sort
 
@@ -9,7 +10,7 @@ import sys
 # ------------------
 # Write buffer para escribir resultados del merge sort
 
-class Helper:
+class ReadBuffer:
     # files: lista de archivos que se leerán en esta "ronda"
     # ifile: índice del archivo cuyo contenido tenemos en memoria principal actualmente
     # invidx: índice invertido (lista de tuplas), contenio del archivo files[ifile]
@@ -18,6 +19,7 @@ class Helper:
     # word: palabra actual
     # idoc: índice del documento actual del postings_list de la palabra actual
     # docID: docID del documento actual del postings_list de la palabra actual
+
     def __init__(self, directory, start, end, n ): # n es cantidad total de files que existen
         self.files = []
         # print(start, end, n)
@@ -30,6 +32,7 @@ class Helper:
         if self.ifile < len(self.files):
             with open(self.files[self.ifile], "rb") as f:
                 dict = pickle.load(f)
+            os.remove(self.files[self.ifile])
             print("read file ", self.files[self.ifile])
             self.invidx = list(dict.items())
             self.over = False
@@ -41,8 +44,6 @@ class Helper:
             self.invidx = []
             self.over = True
         self.i = 0
-
-        
 
     # ver el contenido actual sin quitarlo
     def peep(self):
@@ -75,6 +76,7 @@ class Helper:
                     # si aún no se acaban los archivos, leemos el siguiente y reiniciamos variables
                     with open(self.files[self.ifile], "rb") as f:
                         dict = pickle.load(f)
+                    os.remove(self.files[self.ifile])
                     print("read file ", self.files[self.ifile])
                     self.i = 0
                     self.invidx = list(dict.items())
@@ -106,12 +108,12 @@ class Helper:
 
 
 class WriteBuffer:
-    def __init__(self, directory, start, end, n):
+    def __init__(self, directory, start, end, n, max_dict_size):
+        self.max_dict_size = max_dict_size
         self.contents = {}
         self.files = [ directory + "f" + str(i) + ".pkl" for i in range(start, end) if i < n]
         self.ifile = 0
         print("WRITE BUFFER FILES: ", self.files)
-
 
     def write_to_file(self):
         if self.ifile >= len(self.files) or not self.contents:
@@ -123,6 +125,7 @@ class WriteBuffer:
         self.ifile += 1
         return 1
     
+    # garantizar que se actualicen todos los archivos...
     def end_round(self):
         self.write_to_file()
         self.contents = {}
@@ -132,7 +135,6 @@ class WriteBuffer:
             print("--> wrote ", self.files[self.ifile])
             self.ifile += 1
 
-    
     def insert(self, word : str, elem):
         if self.ifile >= len(self.files):
             return 0
@@ -149,14 +151,6 @@ class WriteBuffer:
                     found = True
             if not found:
                 postings_list.append(elem)
-            # self.contents[word].append(elem)
-        if sys.getsizeof(self.contents) > 1000:
+        if sys.getsizeof(self.contents) > self.max_dict_size:
             return self.write_to_file()
         return 1
-    
-class WBuffer:
-    def __init__(self, n):
-        self.contents = {}
-        self.files = ["f" + str(i) + ".pkl" for i in range(n)]
-        self.ifile = 0
-        print("WRITE BUFFER FILES: ", self.files)
